@@ -6,7 +6,7 @@ COPY . /var/www/html
 
 ENV TZ=Asia/Tokyo
 
-RUN apk update && apk add --no-cache nginx supervisor curl
+RUN apk update && apk add --no-cache composer nginx supervisor curl 
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf

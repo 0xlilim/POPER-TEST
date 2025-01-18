@@ -83,7 +83,7 @@ jobs:
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: deploy/ecs-task-definition-updated.json
+          task-definition: deploy/ecs-task-definition.json
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           force-new-deployment: true

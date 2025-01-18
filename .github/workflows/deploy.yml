@@ -43,39 +43,15 @@ jobs:
         run: |
           docker push ${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.IMAGE_TAG }}
 
-    #   - name: Run security scan with Trivy
-    #     uses: aquasecurity/trivy-action@master
-    #     with:
-    #       image-ref: '${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.IMAGE_TAG }}'
-    #       severity: 'CRITICAL,HIGH'
-    #       exit-code: '1'
-    #       format: 'sarif'
-    #       output: trivy-results.sarif
-
-    #   - name: Upload Trivy scan results to GitHub Security tab
-    #     uses: github/codeql-action/upload-sarif@v3
-    #     with:
-    #       sarif_file: trivy-results.sarif
-    #       token: ${{ secrets.CODE_SCANNING_TOKEN }} # 使用独立创建的 Github PAT 权限(workflow默认权限不足以上传安全报告)
-
       - name: Run security scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-            image-ref: '${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.IMAGE_TAG }}'
-            severity: 'CRITICAL,HIGH'
-            exit-code: '1'
-            format: 'sarif'
-            output: trivy-results.sarif
-
-      - name: List files
-        run: ls -la && cat trivy-results.sarif
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-results.sarif
-          token: ${{ secrets.CODE_SCANNING_TOKEN }}
-
+          image-ref: '${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.IMAGE_TAG }}'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          format: 'sarif'
+          output: trivy-results.sarif
+          
   deploy-to-ecs:
     name: Deploy to ECS
     needs: build-and-push

@@ -1,4 +1,4 @@
-# deploy/deployfile
+# deploy/Dockerfile
 
 # stage 1: build stage
 FROM php:8.2-fpm-alpine AS build
@@ -18,9 +18,9 @@ RUN apk add --no-cache \
     oniguruma-dev \
     gettext-dev
 
-RUN deploy-php-ext-configure zip \
-    && deploy-php-ext-install zip pdo pdo_mysql gd bcmath exif gettext opcache \
-    && deploy-php-ext-enable gd bcmath exif gettext opcache
+RUN docker-php-ext-configure zip \
+    && docker-php-ext-install zip pdo pdo_mysql gd bcmath exif gettext opcache \
+    && docker-php-ext-enable gd bcmath exif gettext opcache
 
 # 安装 composer
 COPY --from=composer:2.7.6 /usr/bin/composer /usr/bin/composer

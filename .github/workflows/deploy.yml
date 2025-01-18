@@ -39,10 +39,6 @@ jobs:
           docker build -t ${{ env.ECR_REPOSITORY }}:${IMAGE_TAG} .
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Push Docker image to ECR
-        run: |
-          docker push ${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.IMAGE_TAG }}
-
       - name: Run security scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -51,7 +47,12 @@ jobs:
           exit-code: '1'
           format: 'sarif'
           output: trivy-results.sarif
-          
+      
+      - name: Push Docker image to ECR
+        run: |
+            docker push ${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.IMAGE_TAG }}
+    
+            
   deploy-to-ecs:
     name: Deploy to ECS
     needs: build-and-push
@@ -70,13 +71,17 @@ jobs:
 
       - name: Render new task definition
         id: render-task-definition
-        uses: jössef/jq-action@v3
+        uses: stedolan/jq@v3
         with:
-          input_file: ecs-task-definition.json
-          jq_expression: '.containerDefinitions[0].image = "${{ env.ECR_REPOSITORY }}:${{ needs.build-and-push.outputs.IMAGE_TAG }}"'
+          input_file: deploy/ecs-task-definition.json
+          output_file: deploy/ecs-task-definition-updated.json
+          with_input: true
+          jq_expression: '.containerDefinitions[0].image = ''${{ env.ECR_REPOSITORY }}:${{ needs.build-and-push.outputs.IMAGE_TAG }}'''
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: deploy/ecs-task-definition.json
-          container-name: ${{ env.CONTAINER_NAME }}
+          task-definition: deploy/ecs-task-definition-updated.json
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          force-new-deployment: true

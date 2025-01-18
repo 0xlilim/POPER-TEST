@@ -1,0 +1,87 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-northeast-1
+  ECR_REPOSITORY: 476114136251.dkr.ecr.ap-northeast-1.amazonaws.com/poper
+  ECS_CLUSTER: poper-app-cluster
+  ECS_SERVICE: run-php-poper
+  CONTAINER_NAME: php-poper-test
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and tag Docker image
+        id: build-image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::7}
+          docker build -t ${{ env.ECR_REPOSITORY }}:${IMAGE_TAG} .
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.IMAGE_TAG }}
+
+      - name: Run security scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ steps.build-image.outputs.IMAGE_TAG }}'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          format: 'sarif'
+          output: trivy-results.sarif
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+  deploy-to-ecs:
+    name: Deploy to ECS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Render new task definition
+        id: render-task-definition
+        uses: jössef/jq-action@v3
+        with:
+          input_file: ecs-task-definition.json
+          jq_expression: '.containerDefinitions[0].image = "${{ env.ECR_REPOSITORY }}:${{ needs.build-and-push.outputs.IMAGE_TAG }}"'
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: deploy/ecs-task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}

@@ -69,14 +69,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Render new task definition
-        id: render-task-definition
-        uses: stedolan/jq@v3
-        with:
-          input_file: deploy/ecs-task-definition.json
-          output_file: deploy/ecs-task-definition-updated.json
-          with_input: true
-          jq_expression: '.containerDefinitions[0].image = ''${{ env.ECR_REPOSITORY }}:${{ needs.build-and-push.outputs.IMAGE_TAG }}'''
+      # 使用 sed 直接替换
+      - name: Update task definition image use sed
+        run: |
+          IMAGE_TAG="${{ needs.build-and-push.outputs.IMAGE_TAG }}"
+          ECR_REPO="${{ env.ECR_REPOSITORY }}"
+          TASK_DEFINITION_FILE="deploy/ecs-task-definition.json"
+          NEW_IMAGE="${ECR_REPO}:${IMAGE_TAG}"
+
+          # 使用 sed 查找并替换固定的字符串 "poper:latest" 为最新的镜像标签，替换原来是用的jq
+          sed -i "s|\"image\": \"poper:latest\"|\"image\": \"${NEW_IMAGE}\"|g" "$TASK_DEFINITION_FILE"
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2

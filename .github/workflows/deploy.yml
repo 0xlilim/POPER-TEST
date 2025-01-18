@@ -72,7 +72,7 @@ jobs:
       # 使用 sed 直接替换
       - name: Update task definition image use sed
         run: |
-          IMAGE_TAG="${{ needs.build-and-push.outputs.IMAGE_TAG }}"
+          IMAGE_TAG="${{ needs.build-image.outputs.IMAGE_TAG }}"
           ECR_REPO="${{ env.ECR_REPOSITORY }}"
           TASK_DEFINITION_FILE="deploy/ecs-task-definition.json"
           NEW_IMAGE="${ECR_REPO}:${IMAGE_TAG}"

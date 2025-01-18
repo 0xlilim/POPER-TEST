@@ -1,47 +1,88 @@
-FROM php:8.2-fpm-alpine
+# deploy/Dockerfile
+
+# stage 1: build stage
+FROM php:8.2-fpm-alpine as build
+
+# installing system dependencies and php extensions
+RUN apk add --no-cache \
+    zip \
+    libzip-dev \
+    freetype \
+    libjpeg-turbo \
+    libpng \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    nodejs \
+    npm \
+    && docker-php-ext-configure zip \
+    && docker-php-ext-install zip pdo pdo_mysql \
+    && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-enable gd
+
+# install composer
+COPY --from=composer:2.7.6 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# 设置时区
-ENV TZ=Asia/Tokyo
+# copy necessary files and change permissions
+COPY . .
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
 
-# 安装必要的依赖和扩展
+# install php and node.js dependencies
+RUN composer install --no-dev --prefer-dist \
+    && npm install \
+    && npm run build
+
+RUN chown -R www-data:www-data /var/www/html/vendor \
+    && chmod -R 775 /var/www/html/vendor
+
+# stage 2: production stage
+FROM php:8.2-fpm-alpine
+
+# install nginx
 RUN apk add --no-cache \
-    nginx \
-    supervisor \
-    composer \
+    zip \
     libzip-dev \
-    $PHPIZE_DEPS \
+    freetype \
+    libjpeg-turbo \
+    libpng \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
     oniguruma-dev \
-    libxml2-dev && \
-    docker-php-ext-install \
-        pdo_mysql \
-        zip \
-        bcmath \
-        fileinfo \
-        dom && \
-    docker-php-ext-configure \
-        session && \
-    apk del $PHPIZE_DEPS && \
-    rm -rf /tmp/* /var/cache/apk/*
+    gettext-dev \
+    freetype-dev \
+    nginx \
+    && docker-php-ext-configure zip \
+    && docker-php-ext-install zip pdo pdo_mysql \
+    && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-enable gd \
+    && docker-php-ext-install bcmath \
+    && docker-php-ext-enable bcmath \
+    && docker-php-ext-install exif \
+    && docker-php-ext-enable exif \
+    && docker-php-ext-install gettext \
+    && docker-php-ext-enable gettext \
+    && docker-php-ext-install opcache \
+    && docker-php-ext-enable opcache \
+    && rm -rf /var/cache/apk/*
 
-# 复制项目文件和配置
-COPY . /var/www/html
-COPY ./docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY ./docker/php.ini /usr/local/etc/php/php.ini
+# copy files from the build stage
+COPY --from=build /var/www/html /var/www/html
+COPY ./docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY ./docker/php.ini "$PHP_INI_DIR/conf.d/app.ini"
 
-# 设置目录权限
-RUN chown -R www-data:www-data \
-    /var/www/html/storage \
-    /var/www/html/bootstrap/cache
+WORKDIR /var/www/html
 
-# 安装依赖
-RUN composer install --no-dev --optimize-autoloader
-
-EXPOSE 80
+# add all folders where files are being stored that require persistence. if needed, otherwise remove this line.
+VOLUME ["/var/www/html/storage/app"]
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD curl -f http://localhost/health || exit 1
+    CMD curl -f http://localhost/up || exit 1
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["sh", "-c", "nginx && php-fpm"]

@@ -23,16 +23,16 @@ Route::get('/', function () {
 
         $result = $appConfigClient->getConfiguration([
             'Application' => $applicationName,
-            'ConfigurationProfile' => $configurationProfileName,
+            'Configuration' => $configurationProfileName,
             'Environment' => $environmentName,
             'ClientId' => $clientId,
         ]);
 
-        $configuration = $result->get('Configuration');
+        $configuration = $result->get('Content');
         $config_content = $configuration->getContents();
 
         $config_array = json_decode($config_content, true);
-        return $config_array['WELCOME_MESSAGE'] . "POPER_CUSTOM_VARIABLE -> " . $config_array['POPER_CUSTOM_VARIABLE'] . "\n Debug: " . $config_array;
+        return $config_array['WELCOME_MESSAGE'] . "POPER_CUSTOM_VARIABLE -> " . $config_array['POPER_CUSTOM_VARIABLE'] . "\n Debug: " . print_r($config_array, true);
 
     } catch (\Exception $e) {
         //  Debug 可能错误，例如 AppConfig 未配置或无法访问

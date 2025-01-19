@@ -20,7 +20,8 @@ Route::get('/', function () {
 
 
     try {
-        $result = $appConfigClient->getLatestConfiguration([
+
+        $result = $appConfigClient->getConfiguration([
             'Application' => $applicationName,
             'ConfigurationProfile' => $configurationProfileName,
             'Environment' => $environmentName,
@@ -30,7 +31,6 @@ Route::get('/', function () {
         $configuration = json_decode($result['Configuration']->getContents(), true);
 
         return $configuration['WELCOME_MESSAGE'] . "POPER_CUSTOM_VARIABLE -> " . $configuration['POPER_CUSTOM_VARIABLE'];
-
     } catch (\Exception $e) {
         //  Debug 可能错误，例如 AppConfig 未配置或无法访问
         return 'Error loading configuration: ' . $e->getMessage();

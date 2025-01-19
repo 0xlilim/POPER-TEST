@@ -18,10 +18,6 @@
           }
         ],
         "environment": [
-          {
-            "name": "POPER_CUSTOM_VARIABLE",
-            "value": "WOWOWOWOW www!"
-          }
         ],
         "healthCheck": {
                 "command": [
@@ -36,5 +32,5 @@
       }
     ],
     "executionRoleArn": "arn:aws:iam::476114136251:role/ecsTaskExecutionRole",
-    "taskRoleArn": "arn:aws:iam::476114136251:role/ecsTaskExecutionRole"
+    "taskRoleArn": "arn:aws:iam::476114136251:role/ecsTaskRole"
   }

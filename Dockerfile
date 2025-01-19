@@ -1,7 +1,7 @@
 # deploy/Dockerfile
 
 # stage 1: build stage
-FROM php:8.2-fpm-alpine AS build
+FROM php:8.4-fpm-alpine AS build
 
 # 安装系统依赖和 PHP 扩展 (包含构建和生产环境需要的)
 RUN apk add --no-cache \
@@ -41,7 +41,7 @@ RUN composer install --no-dev --prefer-dist \
 RUN rm -rf $HOME/.composer/cache && npm cache clean --force
 
 # stage 2: production stage
-FROM php:8.2-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # 安装生产环境需要的依赖 (Nginx)
 RUN apk add --no-cache nginx

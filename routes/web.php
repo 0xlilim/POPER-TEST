@@ -1,14 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Aws\AppConfig\AppConfigClient;
+use Aws\AppConfigData\AppConfigDataClient;
 
 // Route::get('/', function () {
 //     return view('welcome');
 // });
 
 Route::get('/', function () {
-    $appConfigClient = new AppConfigClient([
+    $appConfigDataClient = new AppConfigDataClient([
         'region' => env('AWS_REGION', 'ap-northeast-1'), // 你的 AWS 区域
         'version' => 'latest',
     ]);
@@ -16,22 +16,25 @@ Route::get('/', function () {
     $applicationName = env('APPCONFIG_APPLICATION_NAME');
     $environmentName = env('APPCONFIG_ENVIRONMENT_NAME');
     $configurationProfileName = env('APPCONFIG_CONFIGURATION_PROFILE_NAME');
-    $clientId = env('APPCONFIG_CLIENT_ID');
+    // $clientId = env('APPCONFIG_CLIENT_ID');
 
 
     try {
 
-        $result = $appConfigClient->getConfiguration([
-            'Application' => $applicationName,
-            'Configuration' => $configurationProfileName,
-            'Environment' => $environmentName,
-            'ClientId' => $clientId,
+        $startSessionResult = $appConfigDataClient->startConfigurationSession([
+            'ApplicationIdentifier' => $applicationName,
+            'ConfigurationProfileIdentifier' => $configurationProfileName,
+            'EnvironmentIdentifier' => $environmentName,
         ]);
 
-        $configuration = $result->get('Content');
-        $config_content = $configuration->getContents();
+        $token = $startSessionResult['InitialConfigurationToken'];
 
+        $configResult = $appConfigDataClient->getLatestConfiguration([
+            'ConfigurationToken' => $token
+        ]);
+        $config_content = $configResult['Configuration'];
         $config_array = json_decode($config_content, true);
+
         return $config_array['WELCOME_MESSAGE'] . "POPER_CUSTOM_VARIABLE -> " . $config_array['POPER_CUSTOM_VARIABLE'] . "\n Debug: " . print_r($config_array, true);
 
     } catch (\Exception $e) {

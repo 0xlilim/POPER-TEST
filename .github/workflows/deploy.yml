@@ -78,7 +78,7 @@ jobs:
           TASK_DEFINITION_FILE="deploy/ecs-task-definition.json"
           NEW_IMAGE="${ECR_REPO}:${IMAGE_TAG}"
           echo "Deploy to ECS IMAGE_TAG: $IMAGE_TAG"  # Debug Info
-          # 使用 sed 查找并替换固定的字符串 "poper:latest" 为最新的镜像标签，替换原来是用的jq
+          # 使用 sed 查找并替换固定的字符串 "poper:latest" 为最新的镜像标签，替换原来用的 jq
           sed -i "s|\"image\": \"poper:latest\"|\"image\": \"${NEW_IMAGE}\"|g" "$TASK_DEFINITION_FILE"
 
       - name: Deploy to ECS

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 use Aws\AppConfigData\AppConfigDataClient;
 
 // Route::get('/', function () {
@@ -45,4 +46,14 @@ Route::get('/', function () {
 
     // $message = env('POPER_CUSTOM_VARIABLE', 'NULL'); // 获取环境变量，若不存在用 NULL 做默认值。
     // return "Hello from POPER TEST! POPER_CUSTOM_VARIABLE -> " . $message;
+});
+
+Route::get('/error', function () {
+    // Log an error message with the trace ID
+    Log::error('ERR Test', [
+        'trace_id' => request()->header('X-Amzn-Trace-Id', 'N/A'),
+    ]);
+
+    // Abort the request with a 500 error and a custom message
+    abort(500, 'This is a simulated error on the /error route.');
 });

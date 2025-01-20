@@ -32,10 +32,8 @@ COPY . .
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 安装 php 和 node.js 依赖
-RUN composer install --no-dev --prefer-dist \
-    && npm install \
-    && npm run build
+# 安装 php 及依赖
+RUN composer install --no-dev --prefer-dist
 
 # 清理构建缓存
 RUN rm -rf $HOME/.composer/cache && npm cache clean --force
@@ -50,6 +48,7 @@ RUN apk add --no-cache nginx
 COPY --from=build /var/www/html /var/www/html
 COPY ./deploy/nginx.conf /etc/nginx/http.d/default.conf
 COPY ./deploy/php.ini /usr/local/etc/php/conf.d/app.ini
+COPY ./deploy/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 WORKDIR /var/www/html
 

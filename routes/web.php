@@ -8,16 +8,16 @@ use Aws\AppConfigData\AppConfigDataClient;
 // });
 
 Route::get('/', function () {
+
     $appConfigDataClient = new AppConfigDataClient([
-        'region' => env('AWS_REGION', 'ap-northeast-1'), // 你的 AWS 区域
+        'region' => env('AWS_REGION', 'ap-northeast-1'),
         'version' => 'latest',
     ]);
 
     $applicationName = env('APPCONFIG_APPLICATION_NAME');
     $environmentName = env('APPCONFIG_ENVIRONMENT_NAME');
     $configurationProfileName = env('APPCONFIG_CONFIGURATION_PROFILE_NAME');
-    // $clientId = env('APPCONFIG_CLIENT_ID');
-
+    $clientId = env('APPCONFIG_CLIENT_ID');
 
     try {
 
@@ -25,6 +25,7 @@ Route::get('/', function () {
             'ApplicationIdentifier' => $applicationName,
             'ConfigurationProfileIdentifier' => $configurationProfileName,
             'EnvironmentIdentifier' => $environmentName,
+            'ClientId' => $clientId
         ]);
 
         $token = $startSessionResult['InitialConfigurationToken'];

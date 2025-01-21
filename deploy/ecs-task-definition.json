@@ -14,8 +14,7 @@
         }
       ],
       "restartPolicy": {
-        "name": "ALWAYS",
-        "maximumAttempts": 3
+        "enabled": true
       },
       "essential": true,
       "environment": [],
@@ -59,8 +58,7 @@
         "/var/log/exported/vector.toml"
       ],
       "restartPolicy": {
-        "name": "ALWAYS",
-        "maximumAttempts": 3
+        "enabled": true
       },
       "portMappings": [],
       "essential": false,

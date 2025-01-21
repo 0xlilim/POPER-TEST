@@ -55,7 +55,7 @@
         "/var/log/exported/vector.toml"
       ],
       "portMappings": [],
-      "essential": false,
+      "essential": true,
       "environment": [],
       "environmentFiles": [],
       "mountPoints": [

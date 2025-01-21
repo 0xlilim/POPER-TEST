@@ -56,7 +56,7 @@ WORKDIR /var/www/html
 # 添加持久化存储的目录
 VOLUME ["/var/www/html/storage/app"]
 
-RUN useradd node
+RUN adduser -D node
 RUN mkdir -p /var/log/exported && chown node:node /var/log/exported
 USER node
 RUN touch /var/log/exported/examplefile

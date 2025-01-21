@@ -72,7 +72,7 @@
       ],
       "dependsOn": [
         {
-          "containerName": "appconfig-agent",
+          "containerName": "php-poper-test",
           "condition": "HEALTHY"
         }
       ],

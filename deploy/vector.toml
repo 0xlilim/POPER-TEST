@@ -2,19 +2,31 @@ data_dir = "/var/lib/vector"
 
 [api]
     enabled = true
-    bind= "0.0.0.0:8686"
+    address = "0.0.0.0:8686"
 
-[sources.access_logs]
+# 应用访问日志
+[sources.app_access_logs]
 type = "file"
-include = ["/var/log/exported/access-*"]  # 应用程序容器中的日志路径
+include = ["/var/log/exported/access-*"]
 multiline.mode = "halt_before"
-multiline.start_pattern = '^{'
-multiline.condition_pattern = '}'
-format = "json"
+multiline.start_pattern = '^\{'
+multiline.condition_pattern = '\}'
+encoding.charset = "utf-8"
+multiline.timeout_ms = 1000
+
+[transforms.parse_access_logs]
+type = "remap"
+inputs = ["app_access_logs"]
+source = '''
+. = parse_json!(.message)
+.timestamp = now()
+.host = get_hostname!()
+'''
 
 [sinks.cloudwatch_access_logs]
 type = "aws_cloudwatch_logs"
-inputs = ["access_logs"]
+inputs = ["parse_access_logs"]
 region = "ap-northeast-1"
-log_group_name = "/ecs/php-poper-vector-logs"
-log_stream_name = "{{ host }}/vector-log"
+group_name = "/ecs/laravel-app/access-logs"
+stream_name = "{{ host }}"
+encoding.codec = "json"

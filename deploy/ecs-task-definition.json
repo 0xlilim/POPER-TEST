@@ -3,7 +3,7 @@
   "containerDefinitions": [
     {
       "name": "php-poper-test",
-      "image": "476114136251.dkr.ecr.ap-northeast-1.amazonaws.com/poper:321f000",
+      "image": "poper:latest",
       "cpu": 0,
       "portMappings": [
         {

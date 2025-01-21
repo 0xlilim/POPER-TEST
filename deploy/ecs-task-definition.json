@@ -50,12 +50,8 @@
       "name": "vector-log",
       "image": "476114136251.dkr.ecr.ap-northeast-1.amazonaws.com/timberio/vector:0.44.0-alpine",
       "cpu": 0,
-      "command": [
-        "--config",
-        "/var/log/exported/vector.toml"
-      ],
       "portMappings": [],
-      "essential": true,
+      "essential": false,
       "environment": [],
       "environmentFiles": [],
       "mountPoints": [

@@ -44,6 +44,8 @@ FROM php:8.4-fpm-alpine
 # 安装生产环境需要的依赖 (Nginx)
 RUN apk add --no-cache nginx
 
+WORKDIR /var/www/html
+
 # 复制 build 阶段的文件
 COPY --from=build /var/www/html /var/www/html
 COPY ./deploy/nginx.conf /etc/nginx/http.d/default.conf
@@ -56,10 +58,8 @@ COPY ./deploy/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 
-WORKDIR /var/www/html
-
 # 添加持久化存储的目录
-VOLUME ["/var/www/html/storage/app"]
+# VOLUME ["/var/www/html/storage/app"]
 VOLUME ["/var/log/exported"]
 
 

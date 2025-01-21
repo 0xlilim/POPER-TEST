@@ -1,10 +1,9 @@
 #!/bin/sh
-
 set -e
 
-# 创建并确保 /var/log/exported 目录存在
 mkdir -p /var/log/exported
-chmod -R 775 /var/log/exported
+chown www-data:www-data /var/log/exported
+chmod 775 /var/log/exported
 
 # 复制 vector 配置文件
 if [ ! -f /var/log/exported/vector.toml ]; then

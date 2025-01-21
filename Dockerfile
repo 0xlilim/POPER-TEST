@@ -49,13 +49,21 @@ COPY --from=build /var/www/html /var/www/html
 COPY ./deploy/nginx.conf /etc/nginx/http.d/default.conf
 COPY ./deploy/php.ini /usr/local/etc/php/conf.d/app.ini
 COPY ./deploy/www.conf /usr/local/etc/php-fpm.d/www.conf
-# Copy Vector 配置文件
-COPY ./deploy/vector.toml /etc/vector/vector.toml
+
 
 WORKDIR /var/www/html
 
 # 添加持久化存储的目录
 VOLUME ["/var/www/html/storage/app"]
+
+RUN useradd node
+RUN mkdir -p /var/log/exported && chown node:node /var/log/exported
+USER node
+RUN touch /var/log/exported/examplefile
+VOLUME ["/var/log/exported"]
+
+# Copy Vector 配置文件
+COPY ./deploy/vector.toml /var/log/exported/vector.toml
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -f http://localhost/up || exit 1

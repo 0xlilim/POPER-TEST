@@ -54,7 +54,7 @@ return [
 
         'access' => [
             'driver' => 'daily',
-            'path' => storage_path('logs/access.log'),
+            'path' => storage_path('/var/log/exported/access.log'),
             'level' => 'info',
             'days' => 14, // Optional: Set the number of days to keep log files
         ],

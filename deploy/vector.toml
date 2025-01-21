@@ -6,7 +6,7 @@ data_dir = "/var/lib/vector"
 
 [sources.access_logs]
 type = "file"
-include = ["/var/log/access.log"]  # 应用程序容器中的日志路径
+include = ["/var/log/exported/access.log"]  # 应用程序容器中的日志路径
 multiline.mode = "halt_before"
 multiline.start_pattern = '^{'
 multiline.condition_pattern = '}'

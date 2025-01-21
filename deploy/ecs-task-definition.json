@@ -15,7 +15,12 @@
       ],
       "essential": true,
       "environment": [],
-      "mountPoints": [],
+      "mountPoints": [
+        {
+          "sourceVolume": "application_logs",
+          "containerPath": "/var/log/exported"
+        }
+      ],
       "volumesFrom": [],
       "logConfiguration": {
         "logDriver": "awslogs",
@@ -45,15 +50,30 @@
       "name": "vector-log",
       "image": "476114136251.dkr.ecr.ap-northeast-1.amazonaws.com/timberio/vector:0.44.0-alpine",
       "cpu": 0,
+      "command": [
+        "--config",
+        "/var/log/exported/vector.toml"
+      ],
       "portMappings": [],
       "essential": false,
       "environment": [],
       "environmentFiles": [],
-      "mountPoints": [],
+      "mountPoints": [
+        {
+          "sourceVolume": "application_logs",
+          "containerPath": "/var/log/exported"
+        }
+      ],
       "volumesFrom": [
         {
           "sourceContainer": "php-poper-test",
           "readOnly": true
+        }
+      ],
+      "dependsOn": [
+        {
+          "containerName": "appconfig-agent",
+          "condition": "HEALTHY"
         }
       ],
       "readonlyRootFilesystem": false,
@@ -73,7 +93,11 @@
   "taskRoleArn": "arn:aws:iam::476114136251:role/ecsTaskRole",
   "executionRoleArn": "arn:aws:iam::476114136251:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
-  "volumes": [],
+  "volumes": [
+    {
+      "name": "application_logs"
+    }
+  ],
   "placementConstraints": [],
   "requiresCompatibilities": [
     "FARGATE"

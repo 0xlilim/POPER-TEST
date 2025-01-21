@@ -51,24 +51,12 @@ COPY ./deploy/php.ini /usr/local/etc/php/conf.d/app.ini
 COPY ./deploy/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 
+# 复制 entrypoint 脚本
+COPY ./deploy/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+
 WORKDIR /var/www/html
-
-
-
-
-# 根据 AWS ECS Volume Share 的文档势力，创建 /var/log/exported 目录并设置 node 用户权限
-RUN mkdir -p /var/log/exported 
-# 添加用户并创建文件
-RUN adduser -D node
-
-RUN chown node:node /var/log/exported
-
-
-USER node
-RUN touch /var/log/exported/examplefile
-
-# Copy Vector 配置文件
-COPY ./deploy/vector.toml /var/log/exported/vector.toml
 
 # 添加持久化存储的目录
 VOLUME ["/var/www/html/storage/app"]
@@ -78,4 +66,5 @@ VOLUME ["/var/log/exported"]
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -f http://localhost/up || exit 1
 
-CMD ["sh", "-c", "nginx && php-fpm"]
+# 调用 entrypoint 脚本 & 启动服务
+CMD ["sh", "-c", "/usr/local/bin/entrypoint.sh nginx && php-fpm"]

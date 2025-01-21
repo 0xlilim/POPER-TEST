@@ -54,12 +54,13 @@ jobs:
             docker push ${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.IMAGE_TAG }}
       
 
-      - name: Notify build status
-        if: always()
+      # 成功状态发送到 Info Topic
+      - name: Notify build success
+        if: success()
         run: |
           aws sns publish \
-            --topic-arn ${{ secrets.SNS_TOPIC_ARN }} \
-            --message "${{ job.status == 'success' && '✅' || '❌' }} Docker 构建${{ job.status == 'success' && '成功' || '失败' }}！
+            --topic-arn ${{ secrets.SNS_TOPIC_ARN_INFO }} \
+            --message "✅ Docker 镜像构建成功！
             
             当前阶段: 构建和推送镜像
             状态: ${{ job.status }}
@@ -71,7 +72,27 @@ jobs:
             提交者: ${{ github.actor }}
             
             详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --subject "${{ job.status == 'success' && '✅' || '⚠️' }} [${{ github.repository }}] Docker构建${{ job.status == 'success' && '成功' || '失败' }}"
+            --subject "✅ [${{ github.repository }}] Docker镜像构建成功"
+
+      # 失败状态发送到 Alert Topic
+      - name: Notify build failure
+        if: failure()
+        run: |
+          aws sns publish \
+            --topic-arn ${{ secrets.SNS_TOPIC_ARN_ALERT }} \
+            --message "❌ Docker 镜像构建失败！
+            
+            当前阶段: 构建和推送镜像
+            状态: ${{ job.status }}
+            镜像标签: ${{ steps.build-image.outputs.IMAGE_TAG }}
+            
+            仓库: ${{ github.repository }}
+            分支: ${{ github.ref_name }}
+            提交: ${{ github.sha }}
+            提交者: ${{ github.actor }}
+            
+            详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --subject "⚠️ [${{ github.repository }}] Docker镜像构建失败"
               
   deploy-to-ecs:
     name: Deploy to ECS
@@ -108,12 +129,13 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           force-new-deployment: true
 
-      - name: Notify deployment status
-        if: always()
+      # 成功状态发送到 Info Topic
+      - name: Notify deployment success
+        if: success()
         run: |
           aws sns publish \
-            --topic-arn ${{ secrets.SNS_TOPIC_ARN }} \
-            --message "${{ job.status == 'success' && '✅' || '❌' }} ECS 部署${{ job.status == 'success' && '成功' || '失败' }}！
+            --topic-arn ${{ secrets.SNS_TOPIC_ARN_INFO }} \
+            --message "✅ ECS 部署成功！
             
             当前阶段: 部署到 ECS
             状态: ${{ job.status }}
@@ -127,4 +149,26 @@ jobs:
             提交者: ${{ github.actor }}
             
             详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --subject "${{ job.status == 'success' && '✅' || '⚠️' }} [${{ github.repository }}] ECS部署${{ job.status == 'success' && '成功' || '失败' }}"
+            --subject "✅ [${{ github.repository }}] ECS部署成功"
+
+      # 失败状态发送到 Alert Topic
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          aws sns publish \
+            --topic-arn ${{ secrets.SNS_TOPIC_ARN_ALERT }} \
+            --message "❌ ECS 部署失败！
+            
+            当前阶段: 部署到 ECS
+            状态: ${{ job.status }}
+            集群: ${{ env.ECS_CLUSTER }}
+            服务: ${{ env.ECS_SERVICE }}
+            镜像标签: ${{ needs.build-and-push.outputs.IMAGE_TAG }}
+            
+            仓库: ${{ github.repository }}
+            分支: ${{ github.ref_name }}
+            提交: ${{ github.sha }}
+            提交者: ${{ github.actor }}
+            
+            详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --subject "⚠️ [${{ github.repository }}] ECS部署失败"

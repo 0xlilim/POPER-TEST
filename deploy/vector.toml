@@ -1,10 +1,5 @@
 data_dir = "/var/lib/vector"
 
-[api]
-    enabled = true
-    address = "0.0.0.0:8686"
-
-# 应用访问日志
 [sources.app_access_logs]
 type = "file"
 include = ["/var/log/exported/access-*"]
@@ -14,15 +9,27 @@ encoding.charset = "utf-8"
 type = "remap"
 inputs = ["app_access_logs"]
 source = '''
-# 使用正则表达式提取 JSON 部分
-if match!(.message, r'(?P<json>\{.*\})') {
-    . = parse_json!(.regex.json)
-    .timestamp = now()
-    .host = get_hostname!()
-} else {
-    # 如果没有匹配到 JSON，记录原始日志
-    log(level: "warn", value: "Could not extract JSON from log message. Raw message: " + to_string!(.message));
-    . = {"raw_log": .message}
+# 提取 JSON 字符串
+parsed = parse_regex!(.message, r'\[(?P<log_time>[^\]]+)\] local\.INFO: (?P<json_content>\{.*\})')
+
+# 解析提取出的 JSON
+if exists(parsed.json_content) {
+    json_data = parse_json!(parsed.json_content)
+    
+    # 重构事件
+    . = {
+        "timestamp": json_data.timestamp,
+        "aws_trace_id": json_data."x-amzn-trace-id",
+        "duration_ms": json_data.duration_ms,
+        "method": json_data.method,
+        "url": json_data.url,
+        "ip": json_data.ip,
+        "status_code": json_data.status_code,
+        "user_agent": json_data.user_agent,
+        "host": .host,
+        "file": .file,
+        "source_type": .source_type
+    }
 }
 '''
 
@@ -30,6 +37,6 @@ if match!(.message, r'(?P<json>\{.*\})') {
 type = "aws_cloudwatch_logs"
 inputs = ["parse_access_logs"]
 region = "ap-northeast-1"
-group_name = "/ecs/laravel-app/access-logs"
+group_name = "/ecs/poper-php-test/vector-logs"
 stream_name = "{{ host }}"
 encoding.codec = "json"

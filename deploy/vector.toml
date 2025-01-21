@@ -8,19 +8,22 @@ data_dir = "/var/lib/vector"
 [sources.app_access_logs]
 type = "file"
 include = ["/var/log/exported/access-*"]
-multiline.mode = "halt_before"
-multiline.start_pattern = '^\{'
-multiline.condition_pattern = '\}'
 encoding.charset = "utf-8"
-multiline.timeout_ms = 1000
 
 [transforms.parse_access_logs]
 type = "remap"
 inputs = ["app_access_logs"]
 source = '''
-. = parse_json!(.message)
-.timestamp = now()
-.host = get_hostname!()
+# 使用正则表达式提取 JSON 部分
+if match!(.message, r'(?P<json>\{.*\})') {
+    . = parse_json!(.regex.json)
+    .timestamp = now()
+    .host = get_hostname!()
+} else {
+    # 如果没有匹配到 JSON，记录原始日志
+    log(level: "warn", value: "Could not extract JSON from log message. Raw message: " + to_string!(.message));
+    . = {"raw_log": .message}
+}
 '''
 
 [sinks.cloudwatch_access_logs]

@@ -13,6 +13,10 @@
           "protocol": "tcp"
         }
       ],
+      "restartPolicy": {
+        "name": "ALWAYS",
+        "maximumAttempts": 3
+      },
       "essential": true,
       "environment": [],
       "mountPoints": [
@@ -54,6 +58,10 @@
         "--config",
         "/var/log/exported/vector.toml"
       ],
+      "restartPolicy": {
+        "name": "ALWAYS",
+        "maximumAttempts": 3
+      },
       "portMappings": [],
       "essential": false,
       "environment": [],

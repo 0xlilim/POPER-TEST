@@ -28,7 +28,7 @@ class AccessLogMiddleware
             'start_time' => date('Y-m-d H:i:s', (int)$startTime),
             'end_time' => date('Y-m-d H:i:s', (int)$endTime),
             'duration_ms' => $duration,
-            'trace_id' => $request->header('X-Amzn-Trace-Id', 'N/A'),
+            'x-amzn-trace-id' => $request->header('X-Amzn-Trace-Id', 'N/A'),
             'method' => $request->method(),
             'url' => $request->fullUrl(),
             'ip' => $request->ip(),

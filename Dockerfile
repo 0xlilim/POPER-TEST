@@ -53,19 +53,27 @@ COPY ./deploy/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 WORKDIR /var/www/html
 
+
+
+
+# 根据 AWS ECS Volume Share 的文档势力，创建 /var/log/exported 目录并设置 node 用户权限
+RUN mkdir -p /var/log/exported 
+# 添加用户并创建文件
+RUN adduser -D node
+
+RUN chown node:node /var/log/exported
+
+
+USER node
+RUN touch /var/log/exported/examplefile
+
+# Copy Vector 配置文件
+COPY ./deploy/vector.toml /var/log/exported/vector.toml
+
 # 添加持久化存储的目录
 VOLUME ["/var/www/html/storage/app"]
 VOLUME ["/var/log/exported"]
 
-
-RUN adduser -D node
-RUN mkdir -p /var/log/exported && chown node:node /var/log/exported
-USER node
-RUN touch /var/log/exported/examplefile
-
-
-# Copy Vector 配置文件
-COPY ./deploy/vector.toml /var/log/exported/vector.toml
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -f http://localhost/up || exit 1

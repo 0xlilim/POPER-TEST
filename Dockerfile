@@ -49,6 +49,8 @@ COPY --from=build /var/www/html /var/www/html
 COPY ./deploy/nginx.conf /etc/nginx/http.d/default.conf
 COPY ./deploy/php.ini /usr/local/etc/php/conf.d/app.ini
 COPY ./deploy/www.conf /usr/local/etc/php-fpm.d/www.conf
+# Copy Vector 配置文件
+COPY ./deploy/vector.toml /etc/vector/vector.toml
 
 WORKDIR /var/www/html
 

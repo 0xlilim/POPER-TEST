@@ -1,5 +1,9 @@
 data_dir = "/var/lib/vector"
 
+[api]
+    enabled = true
+    bind= "0.0.0.0:8686"
+
 [sources.access_logs]
 type = "file"
 include = ["/var/log/access.log"]  # 应用程序容器中的日志路径

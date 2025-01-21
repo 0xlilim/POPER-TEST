@@ -1,48 +1,74 @@
 {
-    "family": "php-poper",
-    "networkMode": "awsvpc",
-    "requiresCompatibilities": [
-      "FARGATE"
-    ],
-    "cpu": "256",
-    "memory": "512",
-    "containerDefinitions": [
+  "family": "php-poper-log",
+  "containerDefinitions": [
       {
-        "name": "php-poper-test",
-        "image": "poper:latest",
-        "portMappings": [
-          {
-            "containerPort": 80,
-            "hostPort": 80,
-            "protocol": "tcp"
-          }
-        ],
-        "environment": [
-        ],
-        "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "/ecs/php-poper",
-                    "mode": "non-blocking",
-                    "awslogs-create-group": "true",
-                    "max-buffer-size": "25m",
-                    "awslogs-region": "ap-northeast-1",
-                    "awslogs-stream-prefix": "php-fpm"
-                },
-                "secretOptions": []
-            },
-        "healthCheck": {
-                "command": [
-                    "CMD-SHELL",
-                    "curl -f http://localhost/up || exit 1"
-                ],
-                "interval": 15,
-                "timeout": 5,
-                "retries": 3,
-                "startPeriod": 60
-            }
+          "name": "php-poper-test",
+          "image": "476114136251.dkr.ecr.ap-northeast-1.amazonaws.com/poper:321f000",
+          "cpu": 0,
+          "portMappings": [
+              {
+                  "name": "php-poper-test-80-tcp",
+                  "containerPort": 80,
+                  "hostPort": 80,
+                  "protocol": "tcp"
+              }
+          ],
+          "essential": true,
+          "environment": [],
+          "mountPoints": [],
+          "volumesFrom": [],
+          "logConfiguration": {
+              "logDriver": "awslogs",
+              "options": {
+                  "awslogs-group": "/ecs/php-poper",
+                  "mode": "non-blocking",
+                  "awslogs-create-group": "true",
+                  "max-buffer-size": "25m",
+                  "awslogs-region": "ap-northeast-1",
+                  "awslogs-stream-prefix": "php-fpm"
+              },
+              "secretOptions": []
+          },
+          "healthCheck": {
+              "command": [
+                  "CMD-SHELL",
+                  "curl -f http://localhost/up || exit 1"
+              ],
+              "interval": 15,
+              "timeout": 5,
+              "retries": 3,
+              "startPeriod": 60
+          },
+          "systemControls": []
+      },
+      {
+          "name": "vector-log",
+          "image": "476114136251.dkr.ecr.ap-northeast-1.amazonaws.com/timberio/vector:0.44.0-alpine",
+          "cpu": 0,
+          "portMappings": [],
+          "essential": false,
+          "environment": [],
+          "environmentFiles": [],
+          "mountPoints": [],
+          "volumesFrom": [
+              {
+                  "sourceContainer": "php-poper-test",
+                  "readOnly": true
+              }
+          ],
+          "readonlyRootFilesystem": false,
+          "systemControls": []
       }
-    ],
-    "executionRoleArn": "arn:aws:iam::476114136251:role/ecsTaskExecutionRole",
-    "taskRoleArn": "arn:aws:iam::476114136251:role/ecsTaskRole"
-  }
+  ],
+  "taskRoleArn": "arn:aws:iam::476114136251:role/ecsTaskRole",
+  "executionRoleArn": "arn:aws:iam::476114136251:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "volumes": [],
+  "placementConstraints": [],
+  "requiresCompatibilities": [
+      "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512",
+  "enableFaultInjection": false
+}

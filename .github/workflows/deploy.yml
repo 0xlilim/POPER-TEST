@@ -52,8 +52,27 @@ jobs:
       - name: Push Docker image to ECR
         run: |
             docker push ${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.IMAGE_TAG }}
-    
+      
+
+      - name: Notify build status
+        if: always()
+        run: |
+          aws sns publish \
+            --topic-arn ${{ secrets.SNS_TOPIC_ARN }} \
+            --message "${{ job.status == 'success' && '✅' || '❌' }} Docker 构建${{ job.status == 'success' && '成功' || '失败' }}！
             
+            当前阶段: 构建和推送镜像
+            状态: ${{ job.status }}
+            镜像标签: ${{ steps.build-image.outputs.IMAGE_TAG }}
+            
+            仓库: ${{ github.repository }}
+            分支: ${{ github.ref_name }}
+            提交: ${{ github.sha }}
+            提交者: ${{ github.actor }}
+            
+            详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --subject "${{ job.status == 'success' && '✅' || '⚠️' }} [${{ github.repository }}] Docker构建${{ job.status == 'success' && '成功' || '失败' }}"
+              
   deploy-to-ecs:
     name: Deploy to ECS
     needs: build-and-push
@@ -88,3 +107,24 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           force-new-deployment: true
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          aws sns publish \
+            --topic-arn ${{ secrets.SNS_TOPIC_ARN }} \
+            --message "${{ job.status == 'success' && '✅' || '❌' }} ECS 部署${{ job.status == 'success' && '成功' || '失败' }}！
+            
+            当前阶段: 部署到 ECS
+            状态: ${{ job.status }}
+            集群: ${{ env.ECS_CLUSTER }}
+            服务: ${{ env.ECS_SERVICE }}
+            镜像标签: ${{ needs.build-and-push.outputs.IMAGE_TAG }}
+            
+            仓库: ${{ github.repository }}
+            分支: ${{ github.ref_name }}
+            提交: ${{ github.sha }}
+            提交者: ${{ github.actor }}
+            
+            详情：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --subject "${{ job.status == 'success' && '✅' || '⚠️' }} [${{ github.repository }}] ECS部署${{ job.status == 'success' && '成功' || '失败' }}"

@@ -2,8 +2,7 @@ data_dir = "/var/lib/vector"
 
 
 [api]
-    enabled = true
-    address = "localhost:8686"
+enabled = true
 
 [sources.app_access_logs]
 type = "file"

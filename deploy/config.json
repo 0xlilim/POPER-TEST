@@ -1,0 +1,5 @@
+{
+    "app.debug": true,
+    "WELCOME_MESSAGE":"Hello from Development!",
+    "POPER_CUSTOM_VARIABLE":"WOW!Dev Ver 0.3 ENV~"
+}

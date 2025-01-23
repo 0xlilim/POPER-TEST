@@ -1,0 +1,12 @@
+{
+    "POPER-app-phptest:development:app-config-development": {
+      "writeTo": {
+        "path": "/opt/aws/appconfig/php-poper-test/development/config.json"
+      }
+    },
+    "POPER-app-phptest:production:app-config-development": {
+      "writeTo": {
+        "path": "/opt/aws/appconfig/php-poper-test/production/config.json"
+      }
+    }
+  }

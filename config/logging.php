@@ -54,9 +54,11 @@ return [
 
         'access' => [
             'driver' => 'daily',
-            'path' => '/var/log/exported/access.log',
+            'path' => env('APP_ENV') === 'local'
+                ? '../deploy/logs/access.log'  // 本地环境
+                : '/var/log/exported/access.log',         // 生产环境
             'level' => 'info',
-            'days' => 14, // Optional: Set the number of days to keep log files
+            'days' => 14,
         ],
 
         'stack' => [
@@ -96,7 +98,7 @@ return [
             'handler_with' => [
                 'host' => env('PAPERTRAIL_URL'),
                 'port' => env('PAPERTRAIL_PORT'),
-                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
+                'connectionString' => 'tls://' . env('PAPERTRAIL_URL') . ':' . env('PAPERTRAIL_PORT'),
             ],
             'processors' => [PsrLogMessageProcessor::class],
         ],

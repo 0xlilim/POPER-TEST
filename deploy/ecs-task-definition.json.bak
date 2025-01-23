@@ -13,12 +13,6 @@
           "protocol": "tcp"
         }
       ],
-      "dependsOn": [
-        {
-          "containerName": "appconfig-agent",
-          "condition": "HEALTHY"
-        }
-      ],
       "restartPolicy": {
         "enabled": true
       },
@@ -28,10 +22,6 @@
         {
           "sourceVolume": "application_logs",
           "containerPath": "/var/log/exported"
-        },
-        {
-          "sourceVolume": "appconfig",
-          "containerPath": "/opt/aws/appconfig"
         }
       ],
       "volumesFrom": [],
@@ -67,16 +57,6 @@
         "--config",
         "/var/log/exported/vector.toml"
       ],
-      "healthCheck": {
-        "command": [
-          "CMD-SHELL",
-          "curl -fs http://localhost:8686 || [ $? -eq 22 ]"
-        ],
-        "interval": 15,
-        "timeout": 5,
-        "retries": 3,
-        "startPeriod": 60
-      },
       "restartPolicy": {
         "enabled": true
       },
@@ -104,43 +84,6 @@
       ],
       "readonlyRootFilesystem": false,
       "systemControls": []
-    },
-    {
-      "name": "appconfig-agent",
-      "image": "476114136251.dkr.ecr.ap-northeast-1.amazonaws.com/aws-appconfig/aws-appconfig-agent:latest",
-      "cpu": 0,
-      "restartPolicy": {
-        "enabled": true
-      },
-      "portMappings": [
-      
-      ],
-      "essential": true,
-      "environment": [
-        {
-          "name": "MANIFEST",
-          "value": "{\n  \"POPER-app-phptest:development:app-config-development\": {\n    \"writeTo\": {\n      \"path\": \"/opt/aws/appconfig/php-poper-test/development/config.json\"\n    }\n  },\n  \"POPER-app-phptest:production:app-config-development\": {\n    \"writeTo\": {\n      \"path\": \"/opt/aws/appconfig/php-poper-test/production/config.json\"\n    }\n  }\n}"
-      }
-      ],
-      "environmentFiles": [],
-      "mountPoints": [
-        {
-          "sourceVolume": "appconfig",
-          "containerPath": "/opt/aws/appconfig"
-        }
-      ],
-      "readonlyRootFilesystem": false,
-      "systemControls": [],
-      "healthCheck": {
-        "command": [
-          "CMD-SHELL",
-          "curl -fs http://localhost:2772 || [ $? -eq 22 ]"
-        ],
-        "interval": 15,
-        "timeout": 5,
-        "retries": 3,
-        "startPeriod": 60
-      }
     }
   ],
   "taskRoleArn": "arn:aws:iam::476114136251:role/ecsTaskRole",
@@ -149,9 +92,6 @@
   "volumes": [
     {
       "name": "application_logs"
-    },
-    {
-      "name": "appconfig"
     }
   ],
   "placementConstraints": [],

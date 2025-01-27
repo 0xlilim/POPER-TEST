@@ -13,12 +13,17 @@ env:
   CONTAINER_NAME: php-poper-test
 
 jobs:
+
+  
   build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.build-image.outputs.IMAGE_TAG }} 
     steps:
+      - name: Debugging with tmate
+        uses: mxschmitt/action-tmate@v3.19
+        
       - name: Checkout code
         uses: actions/checkout@v4
 
